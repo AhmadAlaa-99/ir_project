@@ -6,16 +6,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 import os
-from Services.Data_Indexing import Indexing
+from sklearn.feature_extraction.text import TfidfVectorizer
 import pickle
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import pickle
 
 app = Flask(__name__)
 CORS(app)
 
 class Clustering:
     def __init__(self, num_clusters=3):
+        self.vectorizer = TfidfVectorizer()
         self.num_clusters = num_clusters
     def train_kmeans(self, tfidf_matrix, datasetName):
         model_file = f'{datasetName}/kmeans_model.pkl'
@@ -102,8 +104,9 @@ def train_kmeans_route():
     base_path = os.path.dirname(os.path.realpath(__file__))
     base_path = os.path.join(base_path, "..") 
     tf_idf_file = os.path.join(base_path, dataset_name, "vectorized_data.json")
-    indexing = Indexing()
-    tfidf_matrix = indexing.query_vectorize(tf_idf_file)
+   
+    with open(tf_idf_file, "rb") as f:
+        data = pickle.load(f)
     tfidf_matrix = np.array(data['tfidf_matrix'])
     model_file = f'{dataset_name}/kmeans_model.pkl'
     if os.path.exists(model_file):
